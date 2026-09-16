@@ -110,6 +110,13 @@ Lower-level objects — `Cell` (correctors, `a*`, the Toeplitz matrix of `a`), `
 * Fourier coefficients are mean-normalised: `a(y) = sum_k a_hat[k] exp(2 pi i k.y)`.
 * Piecewise-constant coefficients work but converge only like `O(1/K)`; smoothing the interfaces
   over a width of a few percent of the period restores fast convergence (see the paper).
+* **Smooth domains only.**  At a rational normal the lifted problem contains all phases of the
+  boundary line relative to the cell, and `d(n)` returned here is the *phase average*.  That is the
+  right value at a rational normal of a smooth boundary (an isolated direction of a continuous
+  family), but not on a *flat side* with rational normal: there the limit depends on where the
+  side cuts the cell (the phase `s`) and on the subsequence in `eps`, and is the phase-dependent
+  strip tail `d(n, s)` of Moskow–Vogelius, which requires a strip solve at that phase (not
+  provided).  Corners are not covered at all.
 
 ## Validation (see `tests/` and the paper)
 
