@@ -36,7 +36,7 @@ Toeplitz matrix).  Two solvers are provided:
 
 * **`dtn_doubling`** (recommended) — *Riccati doubling*.  The lifted problem is discretised in the
   depth variable, slabs are eliminated pairwise (depth `2^k dt`), and the free-end DtN operator is
-  iterated to its fixed point.  The fixed point is **independent of `dt`** and is the discrete
+  iterated to its fixed point.  The fixed point is **independent of `dt`** (a proposition in the paper: the Crank–Nicolson slab reproduces each decaying mode and its flux exactly) and is the discrete
   solution of the commutator–Riccati equation, so the only approximation is the Fourier
   truncation.  About a dozen doublings, each one Hermitian solve of size `(2K+1)^2`; a few seconds
   per direction at `K = 8`.  Robust at rational normals.
