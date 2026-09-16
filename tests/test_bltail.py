@@ -46,3 +46,27 @@ def test_inclusion_centrosymmetry_broken():
     cell = Cell(inclusion_coefficient(ngrid=256), 4)
     _, _, _, _, T1 = cell.normal_data(0.0)
     assert abs(T1) > 1e-5
+
+def test_api_inputs_agree():
+    import bltail
+    expr = "2 + 0.5*sin(2*pi*y1) + 0.7*sin(2*pi*(y1+y2))"
+    d_expr = bltail.tail(expr, angles_deg=[0.0, 45.0], K=6, check_K=False)
+    g = np.arange(256)/256
+    arr = 2 + 0.5*np.sin(2*np.pi*g[:, None]) + 0.7*np.sin(2*np.pi*(g[:, None]+g[None, :]))
+    d_arr = bltail.tail(arr, angles_deg=[0.0, 45.0], K=6, check_K=False)
+    d_obj = bltail.tail(sine_coefficient(), normals=[[1, 0], [1, 1]], K=6, check_K=False)
+    assert np.allclose(d_expr, d_obj, rtol=1e-8)
+    assert np.allclose(d_arr, d_obj, rtol=2e-3)        # bilinear samples of a
+    assert abs(d_obj[0] - 2.905176e-3) < 1e-6
+
+def test_boundary_data_interpolation():
+    import bltail
+    nn = np.array([[np.cos(0.3), np.sin(0.3)]])
+    d_exact = bltail.boundary_data(sine_coefficient(), nn, K=6, check_K=False)
+    d_interp = bltail.boundary_data(sine_coefficient(), nn, K=6, check_K=False, step_deg=2.0)
+    assert abs(d_exact[0] - d_interp[0]) < 0.02*abs(d_exact[0])
+
+def test_negative_coefficient_rejected():
+    import bltail, pytest
+    with pytest.raises(ValueError):
+        bltail.tail("sin(2*pi*y1)", angles_deg=[0.0], K=4, check_K=False)

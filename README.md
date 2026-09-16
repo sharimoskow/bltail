@@ -6,8 +6,8 @@ cell**, for every unit normal `n` (rational or irrational), in two dimensions.
 
 Companion code to
 
-> S. Moskow, *A cell problem for the boundary density and approximation of boundary corrector
-> limits in periodic homogenization* (2026).
+> S. Moskow, *Approximation of boundary correctors in homogenization theory and a cell problem
+> for the boundary density* (2026).
 
 ## What it computes
 
@@ -53,38 +53,54 @@ ill-conditioned near them: the small divisors); it is not provided.
 
 ```
 pip install -e .            # numpy, scipy;  matplotlib for the examples
-python -m pytest tests      # a few seconds
+python -m pytest tests      # about two minutes
 ```
 
-## Usage
+## Quick start: give it `a`, get `d(n)`
 
 ```python
-import numpy as np
-from bltail import sine_coefficient, inclusion_coefficient, FourierCoefficient, Cell, \
-                   dtn_doubling, dtn_sqrt, tail, density, sweep
+import numpy as np, bltail
 
-cell = Cell(inclusion_coefficient(), K=8)     # cell correctors, a*, Toeplitz matrix of a
-print(cell.astar)
+# the coefficient: a formula in y1, y2 on the unit cell [0,1)^2 ...
+d = bltail.tail("2 + 0.5*sin(2*pi*y1) + 0.7*sin(2*pi*(y1+y2))", angles_deg=[0, 45, 58.28])
 
-r = dtn_doubling(cell, np.radians(58.28))     # n = (cos, sin) of the golden angle; n may also be a 2-vector
-print(r["d"], r["E"], r["T1"], r["Ann"])      # tail, DtN form, toric term, n.a* n
-print(dtn_sqrt(cell, np.radians(58.28))["d"]) # square-root approximation
+# ... or any Python function of numpy arrays ...
+d = bltail.tail(lambda y1, y2: 1 + 9*np.exp(-((y1-0.4)**2 + (y2-0.55)**2)/0.02), normals=[[1, 0], [0.6, 0.8]])
 
-rho, r = density(cell, np.radians(30), N=128) # the density on a 128 x 128 grid of the cell
-table = sweep(cell, np.arange(0, 360, 2.0))   # columns: theta_deg, d, E, T1, A_nn
-
-# your own coefficient (any smooth Z^2-periodic function of (y1, y2) in [0,1)^2):
-mycoef = FourierCoefficient(lambda y1, y2: 1.5 + np.cos(2*np.pi*y1)*np.sin(2*np.pi*y2)**2)
+# ... or samples on a grid, a[i, j] = a(i/N, j/N)
+d = bltail.tail(a_samples, angles_deg=np.arange(0, 360, 2))
 ```
+
+`tail` returns the boundary layer tail `d(n)` of the paper — interior orientation, `n` the
+outward normal — one value per normal.  It builds the Fourier–Galerkin cell (`K = 8` modes per
+direction by default), solves the commutator–Riccati cell problem by Riccati doubling for each
+normal, and checks the truncation by recomputing one normal at `K + 4` (a warning is issued if the
+value moves by more than `1e-3`; use `K=12` or `16` for sharp coefficients).  `method="sqrt"` gives
+the frozen-coefficient approximation instead, about 20x faster and a few percent to 20% off.
+
+For the boundary data of the limit corrector `theta*` on a smooth domain, `d(n(x)) d_n u^0(x)`:
+
+```python
+d = bltail.boundary_data(a, outward_normals_at_boundary_points, dn_u0=dn_u0_values, step_deg=2.0)
+```
+
+which tabulates `d` on a 2-degree grid of angles and interpolates (`d(n)` is only Lipschitz at
+rational normals, so keep the step small); omit `step_deg` to solve every normal exactly.
+`examples/theta_star_boundary_data.py` does this for an ellipse and writes the boundary points,
+normals and `d` to a CSV ready for a finite element code.
 
 Command line:
 
 ```
-python -m bltail --example inclusion --K 8 --step 2 --method both --out d_inclusion.npy
+python -m bltail --expr "2 + 0.5*sin(2*pi*y1) + 0.7*sin(2*pi*(y1+y2))" --angles 0:360:2 --out d.csv
+python -m bltail --array a_samples.npy --angles 0,45,58.28 --K 12
+python -m bltail --example inclusion --angles 0:360:5 --method sqrt
 ```
 
-`examples/plot_tail.py {sine|inclusion}` reproduces the `d(n)` figures of the paper;
-`examples/plot_density.py {sine|inclusion} <angle>` plots the density.
+Lower-level objects — `Cell` (correctors, `a*`, the Toeplitz matrix of `a`), `dtn_doubling`
+(the DtN operator `N_n` itself), `dtn_sqrt`, `density` (the function `rho(., n)` on the cell),
+`sweep` — are available for finer control; `examples/plot_tail.py` and
+`examples/plot_density.py` reproduce the figures of the paper.
 
 ## Conventions
 
