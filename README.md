@@ -116,7 +116,12 @@ Lower-level objects — `Cell` (correctors, `a*`, the Toeplitz matrix of `a`), `
   family), but not on a *flat side* with rational normal: there the limit depends on where the
   side cuts the cell (the phase `s`) and on the subsequence in `eps`, and is the phase-dependent
   strip tail `d(n, s)` of Moskow–Vogelius, which requires a strip solve at that phase (not
-  provided).  Corners are not covered at all.
+  provided).  A flat side with an *irrational* normal is fine in the limit (no phase, no
+  subsequence, the tail is `d(n)`), but at finite `eps` it behaves that way only if the side is
+  long enough for the boundary data to equidistribute: the mode `k` of `chi_n` oscillates along the
+  side with wavelength `eps / |k . n_perp|`, so one needs `L |k . n_perp| >> eps` for the modes that
+  carry `chi_n`; near a low-period rational direction this fails and the side is effectively
+  rational with a phase.  Corners are not covered at all.
 
 ## Validation (see `tests/` and the paper)
 
