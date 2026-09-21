@@ -9,6 +9,8 @@ Companion code to
 > S. Moskow, *A cell problem for the boundary density and approximation of boundary correctors
 > in homogenization theory* (2026), preprint.
 
+Repository: https://github.com/sharimoskow/bltail
+
 If you use this code, please cite the paper (a `CITATION.cff` file is included).
 
 ## What it computes

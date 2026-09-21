@@ -7,6 +7,7 @@ authors:
 version: 0.2.1
 date-released: 2026-09-21
 license: MIT
+repository-code: https://github.com/sharimoskow/bltail
 preferred-citation:
   type: article
   title: "A cell problem for the boundary density and approximation of boundary correctors in homogenization theory"
