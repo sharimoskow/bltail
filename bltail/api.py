@@ -76,7 +76,7 @@ def tail(a, angles_deg=None, normals=None, K: int = 8, method: str = "doubling",
     angles_deg : angles theta with n = (cos theta, sin theta), in degrees; or
     normals    : an (m, 2) array of (not necessarily unit) normal vectors.
     K          : Fourier truncation |k|_inf <= K (default 8; 12-16 for sharp coefficients).
-    method     : 'doubling' (exact up to Fourier truncation) or 'sqrt' (frozen-coefficient
+    method     : 'doubling' (exact up to Fourier truncation) or 'sqrt' (square-root
                  approximation, ~20x cheaper, few-percent to 20% error).
     check_K    : estimate the truncation error by comparing K and K+4 at one normal.
 

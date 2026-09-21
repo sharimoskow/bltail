@@ -6,8 +6,10 @@ cell**, for every unit normal `n` (rational or irrational), in two dimensions.
 
 Companion code to
 
-> S. Moskow, *Approximation of boundary correctors in homogenization theory and a cell problem
-> for the boundary density* (2026).
+> S. Moskow, *A cell problem for the boundary density and approximation of boundary correctors
+> in homogenization theory* (2026), preprint.
+
+If you use this code, please cite the paper (a `CITATION.cff` file is included).
 
 ## What it computes
 
@@ -18,9 +20,10 @@ For `-div(a(x/eps) grad u) = f` with `u = 0` on the boundary, the boundary corre
 A_nn d(n) = < a chi_n (1 - d_n chi_n) >  +  < chi_n , N_n chi_n >
 ```
 
-where `chi_n = n_j chi^j` is the normal cell corrector and `N_n` is the DtN operator of the lifted
-half-space problem (Gérard-Varet–Masmoudi).  The paper shows that `N_n` is the symmetric
-non-negative solution on the torus of the **commutator–Riccati equation**
+where `chi_n = n_j chi^j` is the normal cell corrector and `N_n` is the Dirichlet-to-Neumann (DtN)
+operator of the lifted half-space problem (Gérard-Varet–Masmoudi, in the form in which the cell
+coordinate moves with the coefficient).  The paper shows that `N_n` is the symmetric non-negative
+solution on the torus of the **commutator–Riccati equation**
 
 ```
 N a^{-1} N + [ n.grad , N ] = L_perp(n),        L_perp = -div_perp( a grad_perp )
@@ -40,10 +43,11 @@ Toeplitz matrix).  Two solvers are provided:
   solution of the commutator–Riccati equation, so the only approximation is the Fourier
   truncation.  About a dozen doublings, each one Hermitian solve of size `(2K+1)^2`; a few seconds
   per direction at `K = 8`.  Robust at rational normals.
-* **`dtn_sqrt`** — the frozen-coefficient approximation `N0 = a sqrt(a^{-1} L_perp)`, one
-  generalized eigenproblem, roughly 20x cheaper.  Exact through second order in the contrast of
-  `a`; errors of a few percent for mildly varying coefficients and 10–20 % for high-contrast
-  inclusions.  Useful as a preview or as a seed for the doubling.
+* **`dtn_sqrt`** — the *square-root approximation* `N0 = a sqrt(a^{-1} L_perp)`, obtained by
+  dropping the commutator: one generalized eigenproblem, roughly 20x cheaper.  Exact through second
+  order in the contrast of `a` but not beyond; errors of a few percent for mildly varying
+  coefficients and 10–20 % for high-contrast inclusions.  Useful as a preview or as a seed for the
+  doubling.
 
 Newton iteration on the Riccati equation started from the square root converges quadratically but
 each step is a Lyapunov equation whose operator becomes singular at rational normals (and
@@ -76,7 +80,7 @@ outward normal — one value per normal.  It builds the Fourier–Galerkin cell 
 direction by default), solves the commutator–Riccati cell problem by Riccati doubling for each
 normal, and checks the truncation by recomputing one normal at `K + 4` (a warning is issued if the
 value moves by more than `1e-3`; use `K=12` or `16` for sharp coefficients).  `method="sqrt"` gives
-the frozen-coefficient approximation instead, about 20x faster and a few percent to 20% off.
+the square-root approximation instead, about 20x faster and a few percent to 20% off.
 
 For the boundary data of the limit corrector `theta*` on a smooth domain, `d(n(x)) d_n u^0(x)`:
 
@@ -110,10 +114,14 @@ Lower-level objects — `Cell` (correctors, `a*`, the Toeplitz matrix of `a`), `
 * Fourier coefficients are mean-normalised: `a(y) = sum_k a_hat[k] exp(2 pi i k.y)`.
 * Piecewise-constant coefficients work but converge only like `O(1/K)`; smoothing the interfaces
   over a width of a few percent of the period restores fast convergence (see the paper).
+* **Rational normals.**  At a rational normal the lifted problem contains all phases of the
+  boundary line relative to the cell, and the value returned is the *phase average* of the strip
+  tails of Moskow–Vogelius; the limit of the corrector along a particular sequence `eps -> 0`
+  depends on the phase selected by the sequence.  See the next point.
 * **Smooth domains only.**  At a rational normal the lifted problem contains all phases of the
   boundary line relative to the cell, and `d(n)` returned here is the *phase average*.  That is the
   right value at a rational normal of a smooth boundary (an isolated direction of a continuous
-  family), but not on a *flat side* with rational normal: there the limit depends on where the
+  family, of measure zero), but not on a *flat side* with rational normal: there the limit depends on where the
   side cuts the cell (the phase `s`) and on the subsequence in `eps`, and is the phase-dependent
   strip tail `d(n, s)` of Moskow–Vogelius, which requires a strip solve at that phase (not
   provided).  A flat side with an *irrational* normal is fine in the limit (no phase, no
@@ -131,6 +139,11 @@ Lower-level objects — `Cell` (correctors, `a*`, the Toeplitz matrix of `a`), `
 * Example 2 at `n = e_1`: `2.04394e-2` (finite-volume strips) vs `2.04400e-2`.
 * The commutator–Riccati residual of the computed `N_n` is at round-off level; the density
   integrates to one and reproduces `d(n)`.
+
+## Use of AI
+
+This package was developed with the help of an AI assistant (Claude, Anthropic), as was the
+accompanying paper; the author directed the work and verified the results.
 
 ## License
 

@@ -8,7 +8,7 @@ from .coefficient import FourierCoefficient, TrigCoefficient, sine_coefficient, 
 from .cell import Cell
 from .tail import dtn_doubling, dtn_sqrt, density, sweep
 from .api import tail, tail_curve, boundary_data, as_coefficient
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = ["tail", "tail_curve", "boundary_data", "as_coefficient",
            "FourierCoefficient", "TrigCoefficient", "sine_coefficient", "inclusion_coefficient",
            "Cell", "dtn_doubling", "dtn_sqrt", "density", "sweep"]

@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "bltail: boundary layer tails in periodic homogenization"
+authors:
+  - family-names: Moskow
+    given-names: Shari
+version: 0.2.1
+date-released: 2026-09-21
+license: MIT
+preferred-citation:
+  type: article
+  title: "A cell problem for the boundary density and approximation of boundary correctors in homogenization theory"
+  authors:
+    - family-names: Moskow
+      given-names: Shari
+  year: 2026
+  notes: "preprint"

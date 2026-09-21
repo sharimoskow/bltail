@@ -14,7 +14,7 @@ Methods
     variable t, eliminate slabs pairwise (depth 2^k dt), iterate the free-end DtN operator to its
     fixed point.  The fixed point is *independent of dt* and equals the discrete solution of the
     commutator-Riccati equation; the only approximation is the Fourier truncation.
-``dtn_sqrt``  Frozen-coefficient approximation  N0 = a sqrt(a^{-1} L_perp)  (one generalized
+``dtn_sqrt``  Square-root approximation (commutator dropped)  N0 = a sqrt(a^{-1} L_perp)  (one generalized
     eigenproblem, ~20x cheaper, exact only when a is constant along n; errors of a few % for
     mildly varying a, 10-20 % for high-contrast inclusions).
 """
@@ -66,7 +66,7 @@ def dtn_doubling(cell: Cell, n, orientation: str = "interior", dt: float = 1.0,
 
 
 def dtn_sqrt(cell: Cell, n):
-    """Square-root (frozen-coefficient) approximation.  Same keys as ``dtn_doubling`` plus the
+    """Square-root approximation (the commutator dropped).  Same keys as ``dtn_doubling`` plus the
     generalized eigenpairs ``lam``, ``F`` of  L_perp f = lam a f."""
     chin, w, q, Ann, T1 = cell.normal_data(n)
     A = cell.A
