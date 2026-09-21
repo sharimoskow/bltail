@@ -97,6 +97,30 @@ def density(cell: Cell, n, N: int = 128, method: str = "doubling", **kw):
     return cell.to_grid(rho_hat, N), r
 
 
+def far_field(cell: Cell, n, f, method: str = "doubling", **kw) -> float:
+    """The far-field value  int_{T^2} rho(., n) f  of the boundary layer with periodic datum ``f``
+    (Theorem: the density represents the far field for every datum).  ``f`` may be a Fourier
+    coefficient vector on the cell's modes, or anything ``Cell.project`` accepts.
+    With f = chi_n this is d(n); with f = 1 it is 1."""
+    r = dtn_doubling(cell, n, **kw) if method == "doubling" else dtn_sqrt(cell, n)
+    chin, w, q, Ann, T1 = cell.normal_data(n)
+    rho_hat = (cell.A @ (cell.e0 - 1j * w * chin) + r["N"] @ chin) / Ann
+    f_hat = np.asarray(f) if (isinstance(f, np.ndarray) and f.shape == (cell.M,)) else cell.project(f)
+    return float(np.real(rho_hat.conj() @ f_hat))
+
+
+def tails(cell: Cell, n, method: str = "doubling", **kw):
+    """Both tails needed for the limit corrector with general Dirichlet data u0 = g:
+        theta* = d(n) d_n u0 + d_tau(n) d_tau u0   on the boundary,
+    with d(n) = int rho chi_n (normal cell corrector) and d_tau(n) = int rho chi_tau
+    (tangential cell corrector, tau = (-n_2, n_1)).  Returns (d, d_tau)."""
+    r = dtn_doubling(cell, n, **kw) if method == "doubling" else dtn_sqrt(cell, n)
+    chin, w, q, Ann, T1 = cell.normal_data(n)
+    rho_hat = (cell.A @ (cell.e0 - 1j * w * chin) + r["N"] @ chin) / Ann
+    chitau = cell.tangential_corrector(n)
+    return r["d"], float(np.real(rho_hat.conj() @ chitau))
+
+
 def sweep(cell: Cell, angles_deg, method: str = "doubling", verbose: bool = False, **kw):
     """d(n) for n = (cos theta, sin theta) over a list of angles (degrees).  Returns an array
     with columns [theta_deg, d, E, T1, A_nn]."""

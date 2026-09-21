@@ -4,7 +4,7 @@ title: "bltail: boundary layer tails in periodic homogenization"
 authors:
   - family-names: Moskow
     given-names: Shari
-version: 0.2.1
+version: 0.3.0
 date-released: 2026-09-21
 license: MIT
 preferred-citation:
