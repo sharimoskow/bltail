@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bltail"
-version = "0.2.1"
+version = "0.3.0"
 description = "Boundary layer tails in periodic homogenization via the commutator-Riccati cell problem"
 readme = "README.md"
 license = {text = "MIT"}

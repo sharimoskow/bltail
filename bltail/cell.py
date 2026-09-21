@@ -75,6 +75,18 @@ class Cell:
         Ann = float(np.real(self.e0.conj() @ flux)); T1 = float(np.real(chin.conj() @ flux))
         return chin, w, q, Ann, T1
 
+    def tangential_corrector(self, n):
+        """chi_tau = tau_j chi^j for the counterclockwise unit tangent tau = (-n_2, n_1)."""
+        n = self._unit(n)
+        return -n[1] * self.chi[0] + n[0] * self.chi[1]
+
+    def project(self, f, ngrid: int = 256):
+        """Fourier coefficient vector (on this cell's modes) of a periodic datum ``f``: a coefficient
+        object with ``.hat``, a callable ``f(y1, y2)``, a string in y1, y2, or a 2D array of samples."""
+        from .api import as_coefficient
+        coef = as_coefficient(f, ngrid=ngrid)
+        return np.array([coef.hat((int(kk[0]), int(kk[1]))) for kk in self.k], dtype=complex)
+
     def to_grid(self, coefs, N: int = 128):
         """Evaluate a Fourier vector on the N x N grid (i/N, j/N)."""
         F = np.zeros((N, N), dtype=complex)

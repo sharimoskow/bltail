@@ -1,4 +1,5 @@
 import numpy as np
+import bltail
 import pytest
 from bltail import TrigCoefficient, sine_coefficient, inclusion_coefficient, Cell, dtn_doubling, dtn_sqrt, density
 
@@ -70,3 +71,20 @@ def test_negative_coefficient_rejected():
     import bltail, pytest
     with pytest.raises(ValueError):
         bltail.tail("sin(2*pi*y1)", angles_deg=[0.0], K=4, check_K=False)
+
+
+def test_far_field_and_tails():
+    """The density represents the far field for every datum: linearity, normalization, and the
+    two tails; a constant coefficient has zero tails."""
+    cell = bltail.Cell(bltail.sine_coefficient(), 6)
+    n = np.array([np.cos(0.9), np.sin(0.9)])
+    chin = cell.normal_data(n)[0]
+    d, dtau = bltail.tails(cell, n)
+    assert abs(bltail.far_field(cell, n, chin) - d) < 1e-12
+    assert abs(bltail.far_field(cell, n, "1 + 0*y1") - 1.0) < 1e-10
+    assert abs(bltail.far_field(cell, n, chin + 2 * cell.e0) - (d + 2)) < 1e-10
+    assert abs(bltail.far_field(cell, n, cell.tangential_corrector(n)) - dtau) < 1e-12
+    c0 = bltail.Cell(bltail.TrigCoefficient({(0, 0): 1.0}), 4)
+    assert bltail.tails(c0, n) == (0.0, 0.0)
+    out = bltail.tail(bltail.sine_coefficient(), normals=[n], K=6, datum="tangential", check_K=False)
+    assert abs(out[0] - dtau) < 1e-12

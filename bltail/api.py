@@ -16,7 +16,7 @@ import numpy as np
 import warnings
 from .coefficient import FourierCoefficient, TrigCoefficient
 from .cell import Cell
-from .tail import dtn_doubling, dtn_sqrt
+from .tail import dtn_doubling, dtn_sqrt, far_field, tails as _tails
 
 
 # ---------------------------------------------------------------------------------------------
@@ -67,8 +67,14 @@ def _normals(angles_deg=None, normals=None):
 
 # ---------------------------------------------------------------------------------------------
 def tail(a, angles_deg=None, normals=None, K: int = 8, method: str = "doubling",
-         check_K: bool = True, verbose: bool = False, return_cell: bool = False):
+         check_K: bool = True, verbose: bool = False, return_cell: bool = False, datum="normal"):
     """The boundary layer tail d(n) for a periodic coefficient a and a set of outward unit normals.
+
+    ``datum`` selects the boundary datum whose far field is returned:
+      * "normal"     (default): chi_n, giving the tail d(n) of the paper;
+      * "tangential": chi_tau with tau = (-n_2, n_1), giving d_tau(n), the tail multiplying the
+                      tangential derivative of u0 when u0 = g != 0 on the boundary;
+      * any periodic function (string in y1, y2, callable, 2D sample array): int rho(., n) f.
 
     Parameters
     ----------
@@ -89,10 +95,15 @@ def tail(a, angles_deg=None, normals=None, K: int = 8, method: str = "doubling",
     amin, amax = _check_positive(coef)
     nn = _normals(angles_deg, normals)
     cell = Cell(coef, K)
-    solver = dtn_doubling if method == "doubling" else dtn_sqrt
+    if datum == "normal":
+        def solver(c, n): return dtn_doubling(c, n)["d"] if method == "doubling" else dtn_sqrt(c, n)["d"]
+    elif datum == "tangential":
+        def solver(c, n): return _tails(c, n, method=method)[1]
+    else:
+        def solver(c, n): return far_field(c, n, datum, method=method)
     if check_K:
         cell2 = Cell(coef, K + 4)
-        d1 = solver(cell, nn[0])["d"]; d2 = solver(cell2, nn[0])["d"]
+        d1 = solver(cell, nn[0]); d2 = solver(cell2, nn[0])
         rel = abs(d1 - d2) / max(abs(d2), 1e-300)
         if verbose:
             print(f"a in [{amin:.3g}, {amax:.3g}], a* =\n{cell.astar.round(6)}\n"
@@ -102,7 +113,7 @@ def tail(a, angles_deg=None, normals=None, K: int = 8, method: str = "doubling",
                           f"(relative change {rel:.1e} when K -> {K+4}); increase K.")
     out = np.empty(len(nn))
     for i, n in enumerate(nn):
-        out[i] = solver(cell, n)["d"]
+        out[i] = solver(cell, n)
         if verbose:
             print(f"  n = ({n[0]:+.4f}, {n[1]:+.4f})   d = {out[i]:+.6e}", flush=True)
     return (out, cell) if return_cell else out
@@ -114,22 +125,36 @@ def tail_curve(a, step_deg: float = 2.0, **kw):
     return angles, tail(a, angles_deg=angles, **kw)
 
 
-def boundary_data(a, boundary_normals, dn_u0=None, **kw):
-    """Boundary data of theta* on a smooth domain: d(n(x)) * d_n u^0(x) at boundary points.
+def boundary_data(a, boundary_normals, dn_u0=None, dtau_u0=None, **kw):
+    """Boundary data of theta* on a smooth domain,
+        d(n(x)) * d_n u^0(x)  +  d_tau(n(x)) * d_tau u^0(x),
+    at boundary points.  The second term is present only when u^0 has nonzero Dirichlet data
+    (u^0 = g on the boundary); for u^0 = 0 the tangential derivative vanishes.
 
     boundary_normals : (m, 2) outward normals at the boundary points.
     dn_u0            : normal derivative of the homogenized solution at those points
-                       (if None, returns d(n(x)) alone).
+                       (if None and dtau_u0 is None, returns d(n(x)) alone).
+    dtau_u0          : derivative of u^0 along the counterclockwise unit tangent tau = (-n_2, n_1).
     Each distinct normal is solved for once; for many points, pass step_deg=... in kw to
-    compute d on a uniform angle grid and interpolate (linear in the angle; d is only
-    Lipschitz at rational normals, so keep the step small, 1-2 degrees).
+    compute the tails on a uniform angle grid and interpolate (linear in the angle; the tails
+    are only Lipschitz at rational normals, so keep the step small, 1-2 degrees).
     """
     nn = _normals(normals=boundary_normals)
     step = kw.pop("step_deg", None)
-    if step is None:
-        d = tail(a, normals=nn, **kw)
-    else:
-        ang, dgrid = tail_curve(a, step_deg=step, **kw)
-        th = np.degrees(np.arctan2(nn[:, 1], nn[:, 0])) % 360.0
-        d = np.interp(th, np.append(ang, 360.0), np.append(dgrid, dgrid[0]))
-    return d if dn_u0 is None else d * np.asarray(dn_u0, dtype=float)
+    th = np.degrees(np.arctan2(nn[:, 1], nn[:, 0])) % 360.0
+
+    def _get(datum):
+        if step is None:
+            return tail(a, normals=nn, datum=datum, **kw)
+        ang, grid = tail_curve(a, step_deg=step, datum=datum, **kw)
+        return np.interp(th, np.append(ang, 360.0), np.append(grid, grid[0]))
+
+    d = _get("normal")
+    if dn_u0 is None and dtau_u0 is None:
+        return d
+    out = np.zeros(len(nn))
+    if dn_u0 is not None:
+        out += d * np.asarray(dn_u0, dtype=float)
+    if dtau_u0 is not None:
+        out += _get("tangential") * np.asarray(dtau_u0, dtype=float)
+    return out

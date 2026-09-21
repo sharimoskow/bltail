@@ -90,6 +90,21 @@ For the boundary data of the limit corrector `theta*` on a smooth domain, `d(n(x
 d = bltail.boundary_data(a, outward_normals_at_boundary_points, dn_u0=dn_u0_values, step_deg=2.0)
 ```
 
+**Other boundary data.**  The density `rho(., n)` represents the far field for *every* periodic
+datum, so the same cell problem gives the tail for any datum: `bltail.far_field(cell, n, f)`
+returns `int rho(., n) f`, and `bltail.tail(a, ..., datum=f)` does it for a list of normals.
+The case that arises in practice is nonhomogeneous Dirichlet data `u^0 = g` on the boundary:
+the cell-corrector term then has a tangential part, and the limit corrector has boundary data
+
+```
+theta* = d(n) d_n u^0 + d_tau(n) d_tau u^0,     d_tau(n) = int rho(., n) chi_tau,  tau = (-n_2, n_1),
+```
+
+with `chi_tau = tau_j chi^j` the tangential cell corrector.  `bltail.tails(cell, n)` returns
+`(d, d_tau)`, `bltail.tail(a, ..., datum="tangential")` returns `d_tau`, and
+`bltail.boundary_data(a, normals, dn_u0=..., dtau_u0=...)` assembles both terms.
+(Neumann or Robin conditions lead to a different half-space problem and are not covered.)
+
 which tabulates `d` on a 2-degree grid of angles and interpolates (`d(n)` is only Lipschitz at
 rational normals, so keep the step small); omit `step_deg` to solve every normal exactly.
 `examples/theta_star_boundary_data.py` does this for an ellipse and writes the boundary points,
