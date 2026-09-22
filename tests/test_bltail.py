@@ -88,3 +88,24 @@ def test_far_field_and_tails():
     assert bltail.tails(c0, n) == (0.0, 0.0)
     out = bltail.tail(bltail.sine_coefficient(), normals=[n], K=6, datum="tangential", check_K=False)
     assert abs(out[0] - dtau) < 1e-12
+
+
+def test_laminate_along_layers():
+    """Laminate a = a(y1), boundary along the layers (n = e2): chi_n = 0, rho = a/<a>, and the
+    tangential tail is the a-weighted average of chi^1 (Moskow's thesis), in closed form."""
+    rng = np.random.default_rng(3); N = 65536; y = (np.arange(N) + 0.5) / N
+    coefs = [(rng.normal(), rng.uniform(0, 7)) for k in range(1, 6)]
+    def afun(y1, y2):
+        v = 3 + sum(c * np.sin(2 * np.pi * k * y1 + p) / k for k, (c, p) in enumerate(coefs, 1))
+        return np.abs(v) + 0.5
+    a = afun(y, 0); A = 1 / np.mean(1 / a); dchi = 1 - A / a
+    chi = np.cumsum(dchi) / N - dchi / (2 * N); chi -= chi.mean()
+    exact = np.mean(a * chi) / np.mean(a)
+    cell = bltail.Cell(bltail.FourierCoefficient(afun, 1024), 12)
+    assert abs(cell.astar[0, 0] - A) < 1e-4 and abs(cell.astar[1, 1] - np.mean(a)) < 1e-10
+    d, dtau = bltail.tails(cell, [0.0, 1.0])
+    assert abs(d) < 1e-12                       # chi^2 = 0 for a laminate along y1
+    assert abs(dtau + exact) < 1e-4 * abs(exact)  # tau = (-1, 0): chi_tau = -chi^1
+    rho, _ = bltail.density(cell, [0.0, 1.0], N=64)
+    g = np.arange(64) / 64
+    assert np.max(np.abs(rho - afun(g, 0)[:, None] / np.mean(a))) < 1e-3
