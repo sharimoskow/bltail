@@ -90,8 +90,8 @@ For the boundary data of the limit corrector `theta*` on a smooth domain, `d(n(x
 d = bltail.boundary_data(a, outward_normals_at_boundary_points, dn_u0=dn_u0_values, step_deg=2.0)
 ```
 
-which tabulates `d` on a 2-degree grid of angles and interpolates (`d(n)` is only Lipschitz at
-rational normals, so keep the step small); omit `step_deg` to solve every normal exactly.
+which tabulates `d` on a 2-degree grid of angles and interpolates (the tabulated function `d(n)` is continuous but has kinks at the rational
+normals of small period, so keep the step small); omit `step_deg` to solve every normal exactly.
 `examples/theta_star_boundary_data.py` does this for an ellipse and writes the boundary points,
 normals and `d` to a CSV ready for a finite element code.
 

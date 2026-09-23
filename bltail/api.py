@@ -136,8 +136,8 @@ def boundary_data(a, boundary_normals, dn_u0=None, dtau_u0=None, **kw):
                        (if None and dtau_u0 is None, returns d(n(x)) alone).
     dtau_u0          : derivative of u^0 along the counterclockwise unit tangent tau = (-n_2, n_1).
     Each distinct normal is solved for once; for many points, pass step_deg=... in kw to
-    compute the tails on a uniform angle grid and interpolate (linear in the angle; the tails
-    are only Lipschitz at rational normals, so keep the step small, 1-2 degrees).
+    compute the tails on a uniform angle grid and interpolate (linear in the angle; the tails are
+    continuous but have kinks at rational normals of small period, so keep the step small, 1-2 degrees).
     """
     nn = _normals(normals=boundary_normals)
     step = kw.pop("step_deg", None)
