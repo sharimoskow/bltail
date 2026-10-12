@@ -15,7 +15,7 @@ Methods
     fixed point.  The fixed point is *independent of dt* and equals the discrete solution of the
     commutator-Riccati equation; the only approximation is the Fourier truncation.
 ``dtn_sqrt``  Square-root approximation (commutator dropped)  N0 = a sqrt(a^{-1} L_perp)  (one generalized
-    eigenproblem, ~20x cheaper, exact only when a is constant along n; errors of a few % for
+    eigenproblem, ~10-20x cheaper, exact only when a is constant along n; errors of a few % for
     mildly varying a, 10-20 % for high-contrast inclusions).
 """
 from __future__ import annotations

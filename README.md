@@ -7,7 +7,7 @@ cell**, for every unit normal `n` (rational or irrational), in two dimensions.
 Companion code to
 
 > S. Moskow, *A cell problem for the boundary density and approximation of boundary correctors
-> in homogenization theory* (2026), preprint.
+> in homogenization theory* (2026), arXiv preprint.
 
 Repository: https://github.com/sharimoskow/bltail
 
@@ -41,12 +41,13 @@ Toeplitz matrix).  Two solvers are provided:
 
 * **`dtn_doubling`** (recommended) — *Riccati doubling*.  The lifted problem is discretised in the
   depth variable, slabs are eliminated pairwise (depth `2^k dt`), and the free-end DtN operator is
-  iterated to its fixed point.  The fixed point is **independent of `dt`** (a proposition in the paper: the Crank–Nicolson slab reproduces each decaying mode and its flux exactly) and is the discrete
+  iterated to its fixed point.  The fixed point is **independent of `dt`** (shown in the paper: the
+  Crank–Nicolson slab reproduces each decaying mode and its flux exactly) and is the discrete
   solution of the commutator–Riccati equation, so the only approximation is the Fourier
-  truncation.  About a dozen doublings, each one Hermitian solve of size `(2K+1)^2`; a few seconds
-  per direction at `K = 8`.  Robust at rational normals.
+  truncation.  About a dozen doublings, each two Hermitian solves of size `(2K+1)^2`; about a
+  second per normal at `K = 8`.  Robust at rational normals.
 * **`dtn_sqrt`** — the *square-root approximation* `N0 = a sqrt(a^{-1} L_perp)`, obtained by
-  dropping the commutator: one generalized eigenproblem, roughly 20x cheaper.  Exact through second
+  dropping the commutator: one generalized eigenproblem, roughly 10–20x cheaper.  Exact through second
   order in the contrast of `a` but not beyond; errors of a few percent for mildly varying
   coefficients and 10–20 % for high-contrast inclusions.  Useful as a preview or as a seed for the
   doubling.
@@ -82,7 +83,7 @@ outward normal — one value per normal.  It builds the Fourier–Galerkin cell 
 direction by default), solves the commutator–Riccati cell problem by Riccati doubling for each
 normal, and checks the truncation by recomputing one normal at `K + 4` (a warning is issued if the
 value moves by more than `1e-3`; use `K=12` or `16` for sharp coefficients).  `method="sqrt"` gives
-the square-root approximation instead, about 20x faster and a few percent to 20% off.
+the square-root approximation instead, roughly 10–20x faster and a few percent to 20% off.
 
 For the boundary data of the limit corrector `theta*` on a smooth domain, `d(n(x)) d_n u^0(x)`:
 
@@ -131,19 +132,15 @@ Lower-level objects — `Cell` (correctors, `a*`, the Toeplitz matrix of `a`), `
 * `n` is the **outward** normal; the half-space is the interior side `{y.n < 0}`
   (`orientation="exterior"` gives the other side).  `d(n)` and `d(-n)` differ in general.
 * Fourier coefficients are mean-normalised: `a(y) = sum_k a_hat[k] exp(2 pi i k.y)`.
-* Piecewise-constant coefficients work but converge only like `O(1/K)`; smoothing the interfaces
+* Piecewise-constant coefficients work but converge slowly in `K`; smoothing the interfaces
   over a width of a few percent of the period restores fast convergence (see the paper).
-* **Rational normals.**  At a rational normal the lifted problem contains all phases of the
-  boundary line relative to the cell, and the value returned is the *phase average* of the strip
-  tails of Moskow–Vogelius; the limit of the corrector along a particular sequence `eps -> 0`
-  depends on the phase selected by the sequence.  See the next point.
-* **Smooth domains only.**  At a rational normal the lifted problem contains all phases of the
-  boundary line relative to the cell, and `d(n)` returned here is the *phase average*.  That is the
-  right value at a rational normal of a smooth boundary (an isolated direction of a continuous
-  family, of measure zero), but not on a *flat side* with rational normal: there the limit depends on where the
-  side cuts the cell (the phase `s`) and on the subsequence in `eps`, and is the phase-dependent
-  strip tail `d(n, s)` of Moskow–Vogelius, which requires a strip solve at that phase (not
-  provided).  A flat side with an *irrational* normal is fine in the limit (no phase, no
+* **Rational normals; smooth domains only.**  At a rational normal the lifted problem contains
+  all phases of the boundary line relative to the cell, and `d(n)` returned here is the *phase
+  average* of the strip tails of Moskow–Vogelius.  That is the right value at a rational normal of
+  a smooth boundary (an isolated direction of a continuous family, of measure zero), but not on a
+  *flat side* with rational normal: there the limit depends on where the side cuts the cell (the
+  phase `s`) and on the subsequence in `eps`, and is the phase-dependent strip tail `d(n, s)`,
+  which requires a strip solve at that phase (not provided).  A flat side with an *irrational* normal is fine in the limit (no phase, no
   subsequence, the tail is `d(n)`), but at finite `eps` it behaves that way only if the side is
   long enough for the boundary data to equidistribute: the mode `k` of `chi_n` oscillates along the
   side with wavelength `eps / |k . n_perp|`, so one needs `L |k . n_perp| >> eps` for the modes that
@@ -155,14 +152,17 @@ Lower-level objects — `Cell` (correctors, `a*`, the Toeplitz matrix of `a`), `
 * Constant coefficient: `d = 0`, `N = a |grad_perp|`.
 * Example 1 at `n = e_1`: the DtN form agrees with phase-averaged finite-difference strip solves
   (`5.4233e-3` extrapolated vs `5.42335e-3`).
-* Example 2 at `n = e_1`: `2.04394e-2` (finite-volume strips) vs `2.04400e-2`.
+* Example 2 at `n = e_1`: `2.0448e-2` (phase-averaged finite-volume strips, Richardson-extrapolated)
+  vs `2.0447e-2`.
 * The commutator–Riccati residual of the computed `N_n` is at round-off level; the density
   integrates to one and reproduces `d(n)`.
 
 ## Use of AI
 
-This package was developed with the help of an AI assistant (Claude, Anthropic), as was the
-accompanying paper; the author directed the work and verified the results.
+The code in this package was written by an AI assistant (Claude, Anthropic) under the author's
+direction, as part of the work described in the accompanying paper; the author checked the
+results against independent computations (see *Validation*) and assumes responsibility for them.
+The paper's Declarations section gives the full statement.
 
 ## License
 
