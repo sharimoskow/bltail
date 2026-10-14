@@ -7,7 +7,7 @@ cell**, for every unit normal `n` (rational or irrational), in two dimensions.
 Companion code to
 
 > S. Moskow, *A cell problem for the boundary density and approximation of boundary correctors
-> in homogenization theory* (2026), arXiv preprint.
+> in homogenization theory* (2026), arXiv:2610.17026.
 
 Repository: https://github.com/sharimoskow/bltail
 

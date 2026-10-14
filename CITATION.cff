@@ -8,6 +8,10 @@ version: 0.3.0
 date-released: 2026-09-21
 license: MIT
 repository-code: https://github.com/sharimoskow/bltail
+identifiers:
+  - type: other
+    value: "arXiv:2610.17026"
+    description: "The paper this software accompanies"
 preferred-citation:
   type: article
   title: "A cell problem for the boundary density and approximation of boundary correctors in homogenization theory"
@@ -15,4 +19,5 @@ preferred-citation:
     - family-names: Moskow
       given-names: Shari
   year: 2026
-  notes: "preprint"
+  notes: "arXiv:2610.17026"
+  url: "https://arxiv.org/abs/2610.17026"
